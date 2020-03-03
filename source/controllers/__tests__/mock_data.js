@@ -1,6 +1,6 @@
 const mockPosts = [
   {
-    id: 1, // Automatic
+    id: '1', // Automatic
     status: 'DRAFT',
     title: 'Pokkern te mas', // Manual
     content: 'Nå orker jeg ikke mer. Ut på tur', // Manual
@@ -41,7 +41,7 @@ const mockPosts = [
     ]
   },
   {
-    id: 2,
+    id: '2',
     status: 'DRAFT',
     title: 'Larvik - Kiel',
     content:
@@ -83,7 +83,7 @@ const mockPosts = [
     ]
   },
   {
-    id: 3,
+    id: '3',
     status: 'PUBLISHED',
     title: 'Ugh. Danmark',
     content:
@@ -125,7 +125,7 @@ const mockPosts = [
     ]
   },
   {
-    id: 4,
+    id: '4',
     status: 'UNPUBLISHED',
     title: 'Guten Tag',
     content:
@@ -142,7 +142,7 @@ const mockPosts = [
     ]
   },
   {
-    id: 5,
+    id: '5',
     status: 'DRAFT',
     title: 'Berlin!',
     content:
