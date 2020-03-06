@@ -1,29 +1,18 @@
 const nanoid = require('nanoid')
+const DBManager = require('../db')
 
-const { mockPosts } = require('../controllers/__tests__/mock_data')
-
-const db = {
-	posts: [ ...mockPosts ]
-}
+const db_manager = DBManager.create('posts')
 
 async function getPosts() {
-	return [ ...db.posts ]
+	return await db_manager.getAll()
 }
 
 async function getPost(id) {
-	const results = db.posts.filter(post => post.id === id)
-
-	if (results.length === 0) throw new ReferenceError()
-
-	return results[0]
+	return await db_manager.get(id)
 }
 
 async function deletePost(id) {
-	const index = db.posts.findIndex(item => item.id === id)
-
-	if (index < 0) throw new ReferenceError()
-
-	return db.posts.splice(index, 1)[0]
+	return await db_manager.del(id)
 }
 
 async function savePost(post) {
@@ -31,15 +20,15 @@ async function savePost(post) {
 
 	let original_post = {}
 	try {
-		original_post = await getPost(post.id)
+		original_post = await db_manager.get(post.id)
 
-		await deletePost(post.id)
+		await db_manager.del(post.id)
 	}
 	catch (error) {}
 
 	const updatedPost = Object.assign(original_post, post)
 
-	db.posts.push(updatedPost)
+	await db_manager.set(post.id, updatedPost)
 
 	return updatedPost
 }
