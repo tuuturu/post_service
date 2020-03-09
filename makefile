@@ -11,3 +11,4 @@ clean:
 
 create-dotenv-file:
 	@echo "REDIS_URL=redis://localhost:6379" >> .env
+	@echo "LOG_LEVEL=info" >> .env
