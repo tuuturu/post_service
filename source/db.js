@@ -123,12 +123,12 @@ function del(prefix, key) {
 	})
 }
 
-function create(prefix) {
+function create(namespace) {
 	return {
-		del: (key) => del(prefix, key),
-		get: (key) => get(prefix, key),
-		getAll: () => getAll(prefix),
-		set: (key, obj) => set(prefix, key, obj),
+		del: (key) => del(namespace, key),
+		get: (key) => get(namespace, key),
+		getAll: () => getAll(namespace),
+		set: (key, obj) => set(namespace, key, obj),
 	}
 }
 
