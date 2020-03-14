@@ -1,6 +1,6 @@
 const express = require('express')
 
-const { getPosts, savePost, deletePost, getPost } = require('../services/PostService')
+const { savePost, deletePost, getPost, getPublicPostsByUser } = require('../services/PostService')
 
 const router = express.Router()
 
@@ -60,9 +60,10 @@ router.get('/:id', async (req, res, next) => {
 
 router.get('/', async (req, res, next) => {
 	let posts = []
+	const user = req.query.user
 
 	try {
-		posts = await getPosts()
+		posts = await getPublicPostsByUser(user)
 
 		res.json(posts).end()
 	}

@@ -1,17 +1,25 @@
 const bodyParser = require('body-parser')
-const express = require('express')
 const cors = require('cors')
+const cookieParser = require('cookie-parser')
+const express = require('express')
+const log = require('./logging')
+
+// Middleware
+const auth = require('./auth')
 
 // Controllers
-const posts_controller = require('./controllers/posts')
 const media_controller = require('./controllers/media')
-
+const posts_controller = require('./controllers/posts')
+const trips_controller = require('./controllers/trips')
 
 const app = express()
 
-app.use(cors({ origin: 'http://localhost:8080' }))
 app.use(bodyParser.urlencoded({ extended: true }))
+app.use(cookieParser())
 app.use(express.json())
+
+app.use(auth)
+app.use(cors({ origin: 'http://localhost:8080' }))
 app.use('/static', express.static('static', {
 	setHeaders: (res, path, stat) => {
 		res.set('Content-Type', 'image/png;')
@@ -19,15 +27,16 @@ app.use('/static', express.static('static', {
 	}
 }))
 
-app.use('/posts', posts_controller)
 app.use('/media', media_controller)
+app.use('/posts', posts_controller)
+app.use('/trips', trips_controller)
 
 // 404 if nothing else catches the request
 app.all('*', (req, res) => res.status(404).end() )
 
 // Catch all error handler
 app.use((error, req, res, next) => {
-	console.error(error.stack)
+	log.error(error.stack)
 
 	res.status(500).end()
 })
