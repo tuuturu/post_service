@@ -30,7 +30,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '12.x'
+          registry-url: https://npm.pkg.github.com
+          persist-credentials: false
       - run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish:
     name: Publish Docker image
@@ -43,7 +47,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '12.x'
+          registry-url: https://npm.pkg.github.com
+          persist-credentials: false
       - run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - run: echo "::set-env name=RELEASE_VERSION::$(cat package.json |jq .version)"
 

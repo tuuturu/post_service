@@ -2,7 +2,7 @@
 
 name: Slack notifier
 
-# Controls when the action will run. Triggers the workflow on push or pull request 
+# Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
 on:
   push:
@@ -19,11 +19,11 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
-      
+
     - name: Slack Notify
       uses: rtCamp/action-slack-notify@v2.0.1
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         SLACK_USERNAME: Ferdinand
-        SLACK_ICON: ":heart_eyes_cat:"
+        SLACK_ICON_EMOJI: ":heart_eyes_cat:"
         SLACK_TITLE: Push to master! Meow!
