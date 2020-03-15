@@ -10,8 +10,4 @@ RUN chown node:node /app
 USER node
 
 COPY --chown=node package*.json ./
-COPY --chown=node .npmrc ./.npmrc
-RUN npm ci --only=production
-RUN rm .npmrc
-
 COPY --chown=node . .
