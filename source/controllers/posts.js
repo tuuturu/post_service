@@ -9,6 +9,9 @@ router.post('/', async (req, res) => {
 
 	if (post.id) return res.status(400).end()
 
+	post.author = req.principal
+	if (post.images.length === 0) delete post.images
+
 	const result = await savePost(post)
 
 	res.status(201).json(result).end()
