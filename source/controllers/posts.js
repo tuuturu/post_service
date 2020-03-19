@@ -1,16 +1,16 @@
 const express = require('express')
 
+const { models } = require('@tuuturu/motoblog-common')
 const { savePost, deletePost, getPost, getPublicPostsByUser } = require('../services/PostService')
 
 const router = express.Router()
 
 router.post('/', async (req, res) => {
-	const post = req.body
+	if (req.body.id) return res.status(400).end()
+	if (!req.principal) return res.status(401).end()
 
-	if (post.id) return res.status(400).end()
-
+	const post = new models.Post(req.body)
 	post.author = req.principal
-	if (post.images.length === 0) delete post.images
 
 	const result = await savePost(post)
 
@@ -18,9 +18,8 @@ router.post('/', async (req, res) => {
 })
 
 router.patch('/:id', async (req, res) => {
-	const post = req.body
-
 	if (!req.params.id) return res.status(400).end()
+	const post = new models.Post(req.body)
 
 	post.id = req.params.id
 
@@ -46,9 +45,9 @@ router.delete('/:id', async (req, res, next) => {
 })
 
 router.get('/:id', async (req, res, next) => {
-	const id = req.params.id
+	if (!req.params.id) return res.status(400).end()
 
-	if (!id) return res.status(400).end()
+	const id = req.params.id
 
 	try {
 		const post = await getPost(id)
@@ -62,11 +61,10 @@ router.get('/:id', async (req, res, next) => {
 })
 
 router.get('/', async (req, res, next) => {
-	let posts = []
-	const user = req.query.user
+	if (!req.query.user) return res.status(400).end()
 
 	try {
-		posts = await getPublicPostsByUser(user)
+		const posts = await getPublicPostsByUser(req.query.user)
 
 		res.json(posts).end()
 	}
