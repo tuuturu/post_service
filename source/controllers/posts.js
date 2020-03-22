@@ -1,10 +1,13 @@
 const express = require('express')
 
 const { models } = require('@tuuturu/motoblog-common')
-const { savePost, deletePost, getPost, getPublicPostsByUser } = require('../services/PostService')
+const { savePost, deletePost, getPost, getAllPostsForPrincipal } = require('../services/PostService')
 
 const router = express.Router()
 
+/*
+ * POST /posts/
+ */
 router.post('/', async (req, res) => {
 	if (req.body.id) return res.status(400).end()
 	if (!req.principal) return res.status(401).end()
@@ -17,6 +20,9 @@ router.post('/', async (req, res) => {
 	res.status(201).json(result).end()
 })
 
+/*
+ * PATCH /posts/:id
+ */
 router.patch('/:id', async (req, res) => {
 	if (!req.params.id) return res.status(400).end()
 	const post = new models.Post(req.body)
@@ -28,6 +34,9 @@ router.patch('/:id', async (req, res) => {
 	res.json(post).end()
 })
 
+/*
+ * DELETE /posts/:id
+ */
 router.delete('/:id', async (req, res, next) => {
 	const id = req.params.id
 
@@ -44,6 +53,9 @@ router.delete('/:id', async (req, res, next) => {
 	}
 })
 
+/*
+ * GET /posts/:id
+ */
 router.get('/:id', async (req, res, next) => {
 	if (!req.params.id) return res.status(400).end()
 
@@ -60,11 +72,14 @@ router.get('/:id', async (req, res, next) => {
 	}
 })
 
+/*
+ * GET /posts/
+ */
 router.get('/', async (req, res, next) => {
-	if (!req.query.user) return res.status(400).end()
+	if (!req.principal) return res.status(401).end()
 
 	try {
-		const posts = await getPublicPostsByUser(req.query.user)
+		const posts = await getAllPostsForPrincipal(req.principal)
 
 		res.json(posts).end()
 	}
@@ -73,6 +88,5 @@ router.get('/', async (req, res, next) => {
 		else next(error)
 	}
 })
-
 
 module.exports = router

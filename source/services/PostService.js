@@ -7,16 +7,20 @@ const log = require('../logging')
 const db_manager = DBManager.create('posts')
 const image_manager = DBManager.create('images')
 
-async function getPosts() {
-	return await db_manager.getAll()
-}
-
 async function getPublicPostsByUser(user) {
 	const all_posts = await db_manager.getAll()
 
 	return all_posts
 		.filter(post => post.author === user)
 		.filter(post => post.status === models.PostType.PUBLISHED)
+		.map(post => new models.Post(post))
+}
+
+async function getAllPostsForPrincipal(principal) {
+	const all_posts = await db_manager.getAll()
+
+	return all_posts
+		.filter(post => post.author === principal)
 		.map(post => new models.Post(post))
 }
 
@@ -71,8 +75,8 @@ async function savePost(post) {
 }
 
 module.exports = {
-	getPosts,
 	getPostsByTrip,
+	getAllPostsForPrincipal,
 	getPublicPostsByUser,
 	getPost,
 	deletePost,
