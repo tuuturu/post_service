@@ -21,12 +21,12 @@ push-image:
 release: build push-image
 	@echo "🚀 Release successfully built. We are ready to deploy"
 
-run:
+run: start-dependencies
 	mkdir -p static
 	npm run serve
 
-start-redis:
-	@docker run --rm -p 6379:6379 --name redis -d redis
+start-dependencies:
+	@docker-compose up -d
 
 clean:
 	@rm -rf node_modules
