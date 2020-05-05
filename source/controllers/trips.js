@@ -1,18 +1,29 @@
 const { Router } = require('express')
+const nanoid = require('nanoid')
 
-const { createTrip, getTripsForAuthor } = require('../services/TripService')
-const { getPostsByTrip } = require('../services/PostService')
 const log = require('../logging')
+const { getPostsByTrip } = require('../services/PostService')
+const { SaneRedis } = require('@tuuturu/toolbox-node/data')
+
+const client = new SaneRedis.Client()
+client.connect(process.env.REDIS_URI)
+	.then(() => console.log('Established connection to Redis'))
+	.catch(() => console.log('Failure connecting to Redis'))
 
 const router = Router()
 
 router.get('/', async (req, res) => {
 	const query = req.query.query
-	console.log(`fetching posts for ${query}`)
 
 	if (!query) return res.status(400).end()
+	if (query.length > 35) return res.status(400).end()
 
-	res.json(await getTripsForAuthor(query))
+	const key = [ query, 'trips' ].join(':')
+	const repo = client.createCollectionRepository(key)
+
+	const trips = await repo.getAll()
+
+	res.json(trips).end()
 })
 
 router.get('/:id/posts', async (req, res) => {
@@ -20,12 +31,13 @@ router.get('/:id/posts', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-	if (!req.principal) {
-		log.error('No principal found')
-		return res.status(401).end()
-	}
+	const key = [ req.principal, 'trips' ].join(':')
+	const repo = client.createCollectionRepository(key)
 
-	res.json(await createTrip({ author: req.principal }))
+	const trip = { id: nanoid(), author: req.principal }
+	await repo.set(trip.id, trip)
+
+	res.json(trip).end()
 })
 
 module.exports = router
