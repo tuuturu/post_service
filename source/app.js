@@ -13,6 +13,8 @@ const trips_controller = require('./controllers/trips')
 
 const app = express()
 
+app.disable('x-powered-by')
+
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cookieParser())
 app.use(express.json())
