@@ -26,7 +26,7 @@ run: start-dependencies
 	npm run serve
 
 start-dependencies:
-	@docker-compose up -d
+	@docker-compose --project-name motoblog up -d
 
 clean:
 	@rm -rf node_modules
