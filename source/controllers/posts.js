@@ -10,12 +10,10 @@ const router = express.Router()
  */
 router.post('/', async (req, res) => {
 	if (req.body.id) return res.status(400).end()
-	if (!req.principal) return res.status(401).end()
 
 	const post = new models.Post(req.body)
-	post.author = req.principal
 
-	const result = await savePost(post)
+	const result = await savePost(req.principal, post)
 
 	res.status(201).json(result).end()
 })
@@ -29,7 +27,7 @@ router.patch('/:id', async (req, res) => {
 
 	post.id = req.params.id
 
-	await savePost(post)
+	await savePost(req.principal, post)
 
 	res.json(post).end()
 })
@@ -43,7 +41,7 @@ router.delete('/:id', async (req, res, next) => {
 	if (!id) return res.status(400).end()
 
 	try {
-		await deletePost(id)
+		await deletePost(req.principal, id)
 
 		res.status(204).end()
 	}
@@ -62,7 +60,7 @@ router.get('/:id', async (req, res, next) => {
 	const id = req.params.id
 
 	try {
-		const post = await getPost(id)
+		const post = await getPost(req.principal, id)
 
 		res.json(post).end()
 	}
@@ -76,8 +74,6 @@ router.get('/:id', async (req, res, next) => {
  * GET /posts/
  */
 router.get('/', async (req, res, next) => {
-	if (!req.principal) return res.status(401).end()
-
 	try {
 		const posts = await getAllPostsForPrincipal(req.principal)
 

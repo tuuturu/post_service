@@ -4,7 +4,7 @@ const express = require('express')
 const log = require('./logging')
 
 // Middleware
-const auth = require('./auth')
+const { middleware } = require('@tuuturu/toolbox-node/authentication')
 
 // Controllers
 const media_controller = require('./controllers/media')
@@ -19,15 +19,18 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cookieParser())
 app.use(express.json())
 
-app.use(auth)
 app.use('/static', express.static('static', {
-	setHeaders: (res, path, stat) => {
+	setHeaders: res => {
 		res.set('Content-Type', 'image/png;')
 		res.set('Encoding', 'base64')
 	}
 }))
 
+
 app.use('/media', media_controller)
+
+app.use(middleware.authenticationMiddleware(`${process.env.GATEKEEPER_URL}/userinfo`))
+
 app.use('/posts', posts_controller)
 app.use('/trips', trips_controller)
 

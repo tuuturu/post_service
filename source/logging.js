@@ -6,7 +6,7 @@ if (process.env.LOG_PRETTY_PRINT)
 	formatting.push(prettyPrint())
 
 const logger = new winston.createLogger({
-	level: (process.env.LOG_LEVEL) ? process.env.LOG_LEVEL : 'error',
+	level: (process.env.LOG_LEVEL) ? process.env.LOG_LEVEL : 'info',
 	format: combine(...formatting),
 	defaultMeta: { service: 'post-service' },
 	transports: [

@@ -1,60 +1,81 @@
-const nanoid = require('nanoid')
-const DBManager = require('../db')
+const { nanoid } = require('nanoid')
 
 const { models } = require('@tuuturu/motoblog-common')
+const { SaneRedis } = require('@tuuturu/toolbox-node/data')
 const log = require('../logging')
 
-const db_manager = DBManager.create('posts')
-const image_manager = DBManager.create('images')
+const client = new SaneRedis.Client()
+client.connect(process.env.REDIS_URI)
+	.then(() => log.info('Successfully connected to Redis'))
+	.catch(() => log.error(`Unable to connect to Redis on ${process.env.REDIS_URI}`))
+
+const createKey = principal => [ principal, 'posts' ].join(':')
 
 async function getPublicPostsByUser(user) {
-	const all_posts = await db_manager.getAll()
+	const repo = client.createCollectionRepository(createKey(user))
 
-	return all_posts
-		.filter(post => post.author === user)
+	return repo.getAll()
 		.filter(post => post.status === models.PostType.PUBLISHED)
 		.map(post => new models.Post(post))
 }
 
 async function getAllPostsForPrincipal(principal) {
-	const all_posts = await db_manager.getAll()
+	const repo = client.createCollectionRepository(createKey(principal))
+
+	const all_posts = await repo.getAll()
 
 	return all_posts
 		.filter(post => post.author === principal)
 		.map(post => new models.Post(post))
 }
 
-async function getPostsByTrip(trip_id) {
-	const all_posts = await db_manager.getAll()
+async function getPostsByTrip(principal, trip_id) {
+	const repo = client.createCollectionRepository(createKey(principal))
+	const imageRepo = client.createCollectionRepository([ principal, 'images' ].join(':'))
+	const all_posts = await repo.getAll()
 
 	let relevant_posts = all_posts.filter(post => post.trip === trip_id)
 
-	relevant_posts = relevant_posts.map(post => {
-		post.images = image_manager.getAll().filter(image => image.post_id === post.id)
+	relevant_posts = relevant_posts.map(async post => {
+		const images = await imageRepo.getAll()
+
+		return new models.Post({
+			...post,
+			images: images.filter(image => image.post_id === post.id)
+		})
 	})
 
-	return relevant_posts.map(post => new models.Post(post))
+	return relevant_posts
 }
 
-async function getPost(id) {
-	const post = new models.Post(await db_manager.get(id))
-	post.images = await image_manager.getAll().filter(image => image.post_id === id)
+async function getPost(principal, id) {
+	const repo = client.createCollectionRepository(createKey(principal))
+	const imageRepo = client.createCollectionRepository([ principal, 'images' ].join(':'))
+
+	const post = new models.Post(await repo.get(id))
+	const images = await imageRepo.getAll()
+	post.images = images.filter(image => image.post_id === id)
 
 	return post
 }
 
-async function deletePost(id) {
-	return await db_manager.del(id)
+async function deletePost(principal, id) {
+	const repo = client.createCollectionRepository(createKey(principal))
+
+	return repo.del(id)
 }
 
-async function savePost(post) {
+async function savePost(principal, post) {
+	const repo = client.createCollectionRepository(createKey(principal))
+	const imageRepo = client.createCollectionRepository([ principal, 'images' ].join(':'))
 	if (!post.id) post.id = nanoid()
+	post.author = principal
 
 	let original_post = {}
 	try {
-		original_post = await db_manager.get(post.id)
+		original_post = await repo.get(post.id)
 
-		await db_manager.del(post.id)
+		await repo.del(post.id)
 	}
 	catch (error) {}
 
@@ -62,14 +83,14 @@ async function savePost(post) {
 
 	if (updatedPost.hasOwnProperty('images')) {
 		if (updatedPost.images)
-			updatedPost.images.map(image_id => image_manager.set(image_id, { post_id: updatedPost.id }))
+			updatedPost.images.map(image_id => imageRepo.set(image_id, { post_id: updatedPost.id }))
 
 		delete updatedPost.images
 	}
 
 	log.debug('Saving post', updatedPost)
 
-	await db_manager.set(post.id, updatedPost)
+	await repo.set(post.id, updatedPost)
 
 	return updatedPost
 }

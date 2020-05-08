@@ -1,7 +1,6 @@
 const { Router } = require('express')
-const nanoid = require('nanoid')
+const { nanoid } = require('nanoid')
 
-const log = require('../logging')
 const { getPostsByTrip } = require('../services/PostService')
 const { SaneRedis } = require('@tuuturu/toolbox-node/data')
 
@@ -27,7 +26,7 @@ router.get('/', async (req, res) => {
 })
 
 router.get('/:id/posts', async (req, res) => {
-	res.json(await getPostsByTrip(req.params.id))
+	res.json(await getPostsByTrip(req.principal, req.params.id))
 })
 
 router.post('/', async (req, res) => {
