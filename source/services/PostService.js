@@ -82,7 +82,7 @@ async function savePost(principal, post) {
 	const updatedPost = new models.Post(Object.assign(original_post, post))
 
 	if (updatedPost.images) {
-		updatedPost.images.map(image_id => imageRepo.set(image_id, { post_id: updatedPost.id }))
+		updatedPost.images.forEach(image => imageRepo.set(image.id, { id: image.id, post_id: updatedPost.id }))
 
 		delete updatedPost.images
 	}
