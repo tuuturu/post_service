@@ -79,11 +79,10 @@ async function savePost(principal, post) {
 	}
 	catch (error) {}
 
-	const updatedPost = Object.assign(original_post, post)
+	const updatedPost = new models.Post(Object.assign(original_post, post))
 
-	if (updatedPost.hasOwnProperty('images')) {
-		if (updatedPost.images)
-			updatedPost.images.map(image_id => imageRepo.set(image_id, { post_id: updatedPost.id }))
+	if (updatedPost.images) {
+		updatedPost.images.map(image_id => imageRepo.set(image_id, { post_id: updatedPost.id }))
 
 		delete updatedPost.images
 	}
