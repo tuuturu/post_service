@@ -1,6 +1,6 @@
 const express = require('express')
 const multer = require('multer')
-const nanoid = require('nanoid')
+const { nanoid } = require('nanoid')
 
 const router = express.Router()
 
