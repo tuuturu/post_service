@@ -81,15 +81,12 @@ async function savePost(principal, post) {
 
 	const updatedPost = new models.Post(Object.assign(original_post, post))
 
-	if (updatedPost.images) {
-		updatedPost.images.forEach(image => imageRepo.set(image.id, { id: image.id, post_id: updatedPost.id }))
-
-		delete updatedPost.images
-	}
+	updatedPost.images.forEach(image => imageRepo.set(image.id, { id: image.id, post_id: updatedPost.id }))
 
 	log.debug('Saving post', updatedPost)
-
-	await repo.set(post.id, updatedPost)
+	const payload = { ...updatedPost }
+	delete payload.images
+	await repo.set(post.id, payload)
 
 	return updatedPost
 }
