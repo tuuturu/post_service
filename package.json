@@ -8,16 +8,16 @@
     "serve": "nodemon server.js"
   },
   "author": "ingrid herigstad",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@tuuturu/toolbox-node": "0.0.4",
-    "@tuuturu/motoblog-common": "0.0.20",
+    "@tuuturu/motoblog-common": "0.0.23",
     "axios": "^0.19.2",
     "cookie-parser": "^1.4.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "multer": "^1.4.2",
-    "nanoid": "^3.1.4",
+    "nanoid": "^3.1.7",
     "redis": "^3.0.2",
     "winston": "^3.2.1",
     "body-parser": "^1.19.0"
