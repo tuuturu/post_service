@@ -1,6 +1,11 @@
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const express = require('express')
+
+let expressOasGenerator
+if (process.env.NODE_ENV !== 'production')
+	expressOasGenerator = require('express-oas-generator')
+
 const log = require('./logging')
 
 // Middleware
@@ -12,10 +17,12 @@ const posts_controller = require('./controllers/posts')
 const trips_controller = require('./controllers/trips')
 
 const app = express()
+if (expressOasGenerator)
+	expressOasGenerator.handleResponses(app, {})
 
 app.disable('x-powered-by')
 
-app.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }))
 app.use(cookieParser())
 app.use(express.json())
 
@@ -43,5 +50,8 @@ app.use((error, req, res, next) => {
 
 	res.status(500).end()
 })
+
+if (expressOasGenerator)
+	expressOasGenerator.handleRequests()
 
 module.exports = app
