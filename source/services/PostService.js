@@ -11,6 +11,12 @@ client.connect(process.env.REDIS_URI)
 
 const createKey = principal => [ principal, 'posts' ].join(':')
 
+function ensureID(id) {
+	if(!id || id === -1) return nanoid()
+	
+	return id
+}
+
 async function getPublicPostsByUser(user) {
 	const repo = client.createCollectionRepository(createKey(user))
 
@@ -51,10 +57,12 @@ async function getPostsByTrip(principal, trip_id) {
 async function getPost(principal, id) {
 	const repo = client.createCollectionRepository(createKey(principal))
 	const imageRepo = client.createCollectionRepository([ principal, 'images' ].join(':'))
+	const pointsRepo = client.createCollectionRepository([ principal, 'points', id].join(':'))
 
 	const post = new models.Post(await repo.get(id))
 	const images = await imageRepo.getAll()
 	post.images = images.filter(image => image.post_id === id)
+	post.points = await pointsRepo.getAll()
 
 	return post
 }
@@ -66,10 +74,12 @@ async function deletePost(principal, id) {
 }
 
 async function savePost(principal, post) {
+	post.id = ensureID(post.id)
+	post.author = principal
+
 	const repo = client.createCollectionRepository(createKey(principal))
 	const imageRepo = client.createCollectionRepository([ principal, 'images' ].join(':'))
-	if (!post.id) post.id = nanoid()
-	post.author = principal
+	const pointsRepo = client.createCollectionRepository([ principal, 'points', post.id].join(':'))
 
 	let original_post = {}
 	try {
@@ -82,10 +92,12 @@ async function savePost(principal, post) {
 	const updatedPost = new models.Post(Object.assign(original_post, post))
 
 	updatedPost.images.forEach(image => imageRepo.set(image.id, { id: image.id, post_id: updatedPost.id }))
+  updatedPost.points.forEach(point => pointsRepo.set(point.time, point))
 
 	log.debug('Saving post', updatedPost)
 	const payload = { ...updatedPost }
 	delete payload.images
+	delete payload.points
 	await repo.set(post.id, payload)
 
 	return updatedPost

@@ -5,7 +5,7 @@ const Minio = require('minio')
 
 const router = express.Router()
 
-const BUCKET_DIR = 'motoblog-post-pictures'
+const BUCKET_DIR = 'motoblog-post-images'
 const BUCKET_POLICY = JSON.stringify({
 	Version: '2012-10-17',
 	Statement: [
@@ -22,9 +22,9 @@ const BUCKET_POLICY = JSON.stringify({
 const minioClient = new Minio.Client({
 	endPoint: process.env.MINIO_URL,
 	port: parseInt(process.env.MINIO_PORT),
-	useSSL: false,
 	accessKey: process.env.MINIO_ACCESS_KEY,
-	secretKey: process.env.MINIO_SECRET_KEY
+	secretKey: process.env.MINIO_SECRET_KEY,
+	useSSL: false
 })
 
 async function ensureBucket(bucket) {
@@ -40,9 +40,7 @@ async function storeImage(mimetype, file) {
 	await ensureBucket(BUCKET_DIR)
 	const id = nanoid()
 
-	const metadata = {
-		'Content-Type': mimetype
-	}
+	const metadata = { 'Content-Type': mimetype }
 
 	await minioClient.putObject(BUCKET_DIR, id, file, metadata)
 

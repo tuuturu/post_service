@@ -22,17 +22,9 @@ if (expressOasGenerator)
 
 app.disable('x-powered-by')
 
-app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }))
 app.use(cookieParser())
-app.use(express.json())
-
-app.use('/static', express.static('static', {
-	setHeaders: res => {
-		res.set('Content-Type', 'image/png;')
-		res.set('Encoding', 'base64')
-	}
-}))
-
+app.use(express.json({ limit: '5mb' }))
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }))
 
 app.use('/media', media_controller)
 
