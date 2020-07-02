@@ -13,7 +13,7 @@ const createKey = principal => [ principal, 'posts' ].join(':')
 
 function ensureID(id) {
 	if(!id || id === -1) return nanoid()
-	
+
 	return id
 }
 
@@ -81,26 +81,42 @@ async function savePost(principal, post) {
 	const imageRepo = client.createCollectionRepository([ principal, 'images' ].join(':'))
 	const pointsRepo = client.createCollectionRepository([ principal, 'points', post.id].join(':'))
 
-	let original_post = {}
-	try {
-		original_post = await repo.get(post.id)
-
-		await repo.del(post.id)
-	}
-	catch (error) {}
-
+	let original_post = await purgePost(post)
 	const updatedPost = new models.Post(Object.assign(original_post, post))
 
 	updatedPost.images.forEach(image => imageRepo.set(image.id, { id: image.id, post_id: updatedPost.id }))
   updatedPost.points.forEach(point => pointsRepo.set(point.time, point))
 
-	log.debug('Saving post', updatedPost)
 	const payload = { ...updatedPost }
 	delete payload.images
 	delete payload.points
 	await repo.set(post.id, payload)
 
 	return updatedPost
+}
+
+async function purgePost(post) {
+  const principal = post.author
+	const repo = client.createCollectionRepository(createKey(principal))
+	const imageRepo = client.createCollectionRepository([ principal, 'images' ].join(':'))
+	const pointsRepo = client.createCollectionRepository([ principal, 'points', post.id].join(':'))
+
+	let original_post = {}
+	try {
+		original_post = await repo.get(post.id)
+		const operations = []
+
+		operations.push(...(await imageRepo.getAll()).map(image => imageRepo.del(image.id)))
+		operations.push(...(await pointsRepo.getAll()).map(point => pointsRepo.del(point.time)))
+    operations.push(repo.del(post.id))
+
+		await Promise.all(operations)
+	}
+	catch (error) {
+    log.debug('Error deleting something', error)
+	}
+
+	return original_post
 }
 
 module.exports = {
